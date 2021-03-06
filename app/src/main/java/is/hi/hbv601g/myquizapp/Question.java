@@ -1,21 +1,36 @@
 package is.hi.hbv601g.myquizapp;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Question {
 
-    private int mTextResId;
+    @SerializedName("id")
+    private int mId;
+    @SerializedName("questionText")
+    private String mQuestionText;
+    @SerializedName("answerTrue")
     private boolean mAnswerTrue;
 
-    public Question(int textResId, boolean answerTrue) {
-        mTextResId = textResId;
+    public Question(int id, String questionText, boolean answerTrue) {
+        mId = id;
+        mQuestionText = questionText;
         mAnswerTrue = answerTrue;
     }
 
-    public int getTextResId() {
-        return mTextResId;
+    public int getId() {
+        return mId;
     }
 
-    public void setTextResId(int textResId) {
-        mTextResId = textResId;
+    public void setId(int id) {
+        mId = id;
+    }
+
+    public String getQuestionText() {
+        return mQuestionText;
+    }
+
+    public void setQuestionText(String questionText) {
+        mQuestionText = questionText;
     }
 
     public boolean isAnswerTrue() {

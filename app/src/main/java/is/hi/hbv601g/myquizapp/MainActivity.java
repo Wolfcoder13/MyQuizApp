@@ -12,6 +12,11 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.List;
+
+import is.hi.hbv601g.myquizapp.networking.NetworkCallback;
+import is.hi.hbv601g.myquizapp.networking.NetworkManager;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
@@ -24,14 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mButtonCheat;
     private TextView mTextViewQuestion;
 
-    private Question[] mQuestionBank = new Question[] {
-            new Question(R.string.question_africa, true),
-            new Question(R.string.question_americas, false),
-            new Question(R.string.question_asia, true),
-            new Question(R.string.question_australia, true),
-            new Question(R.string.question_mideast, false),
-            new Question(R.string.question_oceans, true)
-    };
+    private List<Question> mQuestionBank;
 
     private int mCurrentIndex = 0;
     private boolean mUserCheated = false;
@@ -46,7 +44,34 @@ public class MainActivity extends AppCompatActivity {
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
         }
 
-        updateQuestion();
+        NetworkManager networkManager = NetworkManager.getInstance(this);
+        networkManager.getQuestions(new NetworkCallback<List<Question>>() {
+            @Override
+            public void onSuccess(List<Question> result) {
+                mQuestionBank = result;
+                //Log.d(TAG, "First Question in bank: " + mQuestionBank.get(0).getQuestionText());
+                updateQuestion();
+            }
+
+            @Override
+            public void onFailure(String errorString) {
+                Log.e(TAG, "Failed to get question: " + errorString);
+            }
+        });
+
+        networkManager.getQuestion(6, new NetworkCallback<Question>() {
+            @Override
+            public void onSuccess(Question result) {
+                Log.d(TAG, "Question text for id " + String.valueOf(6) + " is: " + result.getQuestionText());
+            }
+
+            @Override
+            public void onFailure(String errorString) {
+                Log.e(TAG, "Failed to get question: " + errorString);
+            }
+        });
+
+        //updateQuestion();
 
         mButtonTrue = (Button) findViewById(R.id.true_button);
         mButtonTrue.setOnClickListener(new View.OnClickListener() {
@@ -68,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
         mButtonNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.length;
+                mCurrentIndex = (mCurrentIndex + 1) % mQuestionBank.size();
                 updateQuestion();
             }
         });
@@ -78,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 // Start CheatActivity
-                Intent intent = CheatActivity.newIntent(MainActivity.this, mQuestionBank[mCurrentIndex].isAnswerTrue());
+                Intent intent = CheatActivity.newIntent(MainActivity.this, mQuestionBank.get(mCurrentIndex).isAnswerTrue());
                 startActivityForResult(intent, REQUEST_CODE_CHEAT);
             }
         });
@@ -136,12 +161,12 @@ public class MainActivity extends AppCompatActivity {
     // Update question text to current question.
     private void updateQuestion(){
         mTextViewQuestion = (TextView) findViewById(R.id.question_text);
-        mTextViewQuestion.setText(mQuestionBank[mCurrentIndex].getTextResId());
+        mTextViewQuestion.setText(mQuestionBank.get(mCurrentIndex).getQuestionText());
         mUserCheated = false;
     }
 
     private void checkAnswer(boolean userPressedTrue){
-        boolean answerIsTrue = mQuestionBank[mCurrentIndex].isAnswerTrue();
+        boolean answerIsTrue = mQuestionBank.get(mCurrentIndex).isAnswerTrue();
 
         if(mUserCheated){
             Toast.makeText(this, R.string.judgement_toast, Toast.LENGTH_SHORT).show();
