@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mButtonFalse;
     private Button mButtonNext;
     private Button mButtonCheat;
+    private ProgressBar mProgressBar;
     private TextView mTextViewQuestion;
 
     private List<Question> mQuestionBank;
@@ -44,34 +46,31 @@ public class MainActivity extends AppCompatActivity {
             mCurrentIndex = savedInstanceState.getInt(KEY_INDEX, 0);
         }
 
+        mProgressBar = (ProgressBar) findViewById(R.id.progress_bar);
+
         NetworkManager networkManager = NetworkManager.getInstance(this);
         networkManager.getQuestions(new NetworkCallback<List<Question>>() {
             @Override
             public void onSuccess(List<Question> result) {
                 mQuestionBank = result;
-                //Log.d(TAG, "First Question in bank: " + mQuestionBank.get(0).getQuestionText());
+                Log.d(TAG, "Successfully fetched questions.");
                 updateQuestion();
+
+                // enable buttons and text
+                mButtonTrue.setEnabled(true);
+                mButtonFalse.setEnabled(true);
+                mButtonCheat.setEnabled(true);
+                mButtonNext.setEnabled(true);
+                mTextViewQuestion.setVisibility(View.VISIBLE);
+                mProgressBar.setVisibility(View.GONE);
             }
 
             @Override
             public void onFailure(String errorString) {
-                Log.e(TAG, "Failed to get question: " + errorString);
+                Log.e(TAG, "Failed to get questions: " + errorString);
             }
         });
 
-        networkManager.getQuestion(6, new NetworkCallback<Question>() {
-            @Override
-            public void onSuccess(Question result) {
-                Log.d(TAG, "Question text for id " + String.valueOf(6) + " is: " + result.getQuestionText());
-            }
-
-            @Override
-            public void onFailure(String errorString) {
-                Log.e(TAG, "Failed to get question: " + errorString);
-            }
-        });
-
-        //updateQuestion();
 
         mButtonTrue = (Button) findViewById(R.id.true_button);
         mButtonTrue.setOnClickListener(new View.OnClickListener() {
